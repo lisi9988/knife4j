@@ -344,22 +344,37 @@ export default {
      * @param childrens []
      * @param parent ''
      */
-    filterChildrens(keys = [], childrens = [], parent) {
-      if (keys.length === 0) return childrens;
+    filterChildrens(keys = [], childrens = [], parent, apiInfo) {
+      if (keys.length === 0 && childrens.length === 0) return childrens;
       const that = this;
       const arrs = parent
         ? childrens.filter(child => !keys.includes(`${parent}.${child.name}`))
         : childrens.filter(child => !keys.includes(child.name));
-      return arrs.map(child => {
+      let indexArr = [];
+      let index = 0;
+      let indexCount = 0;
+      let childs = arrs.map(child => {
         child.id = uniqueId("param"); //  这里顺带重置一下 id , 避免与相应参数对象服用时组件 id 相同报错
-        if (child.children)
-          child.children = that.filterChildrens(
-            keys,
-            child.children,
-            child.name
-          );
+        if (child.children) {
+          child.children = that.filterChildrens(keys, child.children, child.name, apiInfo);
+        } else {
+          if (child.groups !== undefined &&
+            child.groups.length > 0 &&
+            apiInfo.groups !== 'Void' &&
+            child.groups.includes("Hidden" + apiInfo.groups)) {
+
+            //child.children.splice(index-indexCount, 1);
+            indexArr.push(index - indexCount)
+            indexCount++;
+          }
+        }
+        index++;
         return child;
       });
+      for (let i = 0; i < indexArr.length; i++) {
+        childs.splice(indexArr[i], 1);
+      }
+      return childs;
     },
     initRequestParams() {
       var key = Constants.globalTreeTableModelParams + this.swaggerInstance.id;
@@ -401,6 +416,8 @@ export default {
             } else {
               return true;
             }
+          } else if (pm.groups !== undefined && pm.groups != null && pm.groups.length > 0 && apiInfo.groups !== 'Void' && pm.groups.includes("Hidden" + apiInfo.groups)) {
+            return false
           } else {
             return !ignoreParameterAllKeys.includes(pm.name);
           }
@@ -411,7 +428,7 @@ export default {
             //  过滤掉忽略参数
             .filter(
               ({ name }) =>
-                !ignoreParameterAllKeys.includes(name) 
+                !ignoreParameterAllKeys.includes(name)
             )
         ); */
         // console.log(data);
@@ -430,11 +447,15 @@ export default {
         });
       }
       let reqParameters = [];
+      let ignoreParam = [];
       if (data != null && data.length > 0) {
         // console.log("初始化请求参数:", JSON.parse(JSON.stringify(data)));
         data.forEach(function (param) {
           if (param.pid == "-1") {
             param.children = null;
+            if (param.groups !== undefined && param.groups !== null && param.groups.length > 0 && apiInfo.groups !== 'Void') {
+              param.require = param.groups.includes(apiInfo.groups);
+            }
             // 判断该参数是否存在schema参数
             if (param.schema) {
               // 判断当前缓存是否存在
@@ -470,7 +491,19 @@ export default {
                         const newObj = that.copyNewParameter(
                           swaggerBootstrapUiParameter
                         );
+                        // 记录忽略的属性
+                        if (newObj.groups !== undefined &&
+                          newObj.groups.length > 0 &&
+                          apiInfo.groups !== 'Void' &&
+                          newObj.groups.includes("Hidden" + apiInfo.groups)) {
+
+                          ignoreParam.push(newObj.name);
+                        }
                         newObj.pid = param.id;
+                        // 方法的groups 默认是Void, 属性是空数组
+                        if (newObj.groups !== undefined && newObj.groups !== null && newObj.groups.length > 0 && apiInfo.groups !== 'Void') {
+                          newObj.require = newObj.groups.includes(apiInfo.groups);
+                        }
                         if (newObj.children) {
                           // 递归过滤更深层次忽略的属性
                           const childrens = JSON.parse(
@@ -493,7 +526,9 @@ export default {
                             .filter(Boolean);
                           newObj.children = that.filterChildrens(
                             currentIgnores,
-                            childrens
+                            childrens,
+                            newObj.name,
+                            apiInfo
                           );
                         }
                         return newObj;
@@ -503,10 +538,24 @@ export default {
                 }
               }
             }
+            // 如果是json请求属性
+            let newJsonValue = Object.assign({}, param.value);
+            for (const ignoreParamElement of ignoreParam) {
+              Reflect.deleteProperty(newJsonValue, ignoreParamElement);
+              for (let i = 0; i < param.children.length; i++) {
+                let child = param.children[i];
+                if (ignoreParamElement === child.name) {
+                  param.children.splice(i, 1);
+                }
+              }
+            }
+            // json请求把示例参数格式化, formatData 或 pathValue 等参数不需要
+            if (typeof apiInfo.requestValue === 'string') {
+              apiInfo.requestValue = JSON.stringify(newJsonValue, null, 4);
+            }
             reqParameters.push(param);
           }
         });
-        // console.log("当前reqParameters:", JSON.parse(JSON.stringify(reqParameters)));
       }
       // 此处需要递归去除include之外的parameters
       if (apiInfo.includeParameters != null) {
@@ -637,7 +686,8 @@ export default {
                 type: nmd.type,
                 validateInstance: nmd.validateInstance,
                 validateStatus: nmd.validateStatus,
-                value: nmd.value
+                value: nmd.value,
+                groups: nmd.groups
               };
               childrenParam.pid = param.id;
               param.children.push(childrenParam);
@@ -681,6 +731,7 @@ export default {
     initResponseCodeParams() {
       // 遍历响应参数
       var that = this;
+      var apiInfo = this.api;
       var key = Constants.globalTreeTableModelParams + this.swaggerInstance.id;
       // 添加自定义属性
       that.multipCode = this.api.multipartResponseSchema;
@@ -766,14 +817,35 @@ export default {
 
                   // that.findModelChildren(md, respdata);
                   // 查找后如果没有,则将children置空
-                  if (param.children.length == 0) {
+                  if (param.children.length === 0) {
                     param.children = null;
                   }
-                  nrecodedatas.push(param);
+                  if (param.children !== null &&
+                    param.children instanceof Array &&
+                    param.children.length > 0) {
+
+                    that.loopResponseParams(param, apiInfo)
+                  }
+                  if (param.groups !== undefined &&
+                    param.groups !== null &&
+                    param.groups.length > 0 &&
+                    apiInfo.groups !== 'Void' &&
+                    param.groups.includes("Hidden" + apiInfo.groups)) {
+
+                    // 隐藏参数
+                  } else {
+                    nrecodedatas.push(param);
+                  }
                 }
               });
             }
-            var nresobj = { ...rc, data: nrecodedatas };
+            var nresobj = {...rc, data: nrecodedatas};
+            let buildObjectFromParameters = this.buildObjectFromParameters(nrecodedatas);
+            if (rc.responseJson instanceof Array) {
+              buildObjectFromParameters = [buildObjectFromParameters]
+            }
+            nresobj.responseValue = KUtils.json5stringifyFormat(buildObjectFromParameters, null, '\t');
+            nresobj.responseJson = buildObjectFromParameters;
             if (!that.multipCode) {
               that.multipData = nresobj;
             }
@@ -889,7 +961,93 @@ export default {
           }
         }
       }
-    }
+    },
+    // 循环计算响应参数
+    loopResponseParams(param, apiInfo) {
+      if (param.children == null || !(param.children instanceof Array)) {
+        return
+      }
+      let spliceIndex = [];
+      let spliceCount = 0;
+      let len = param.children.length;
+      for (let i = 0; i < len; i++) {
+        let child = param.children[i];
+        if (child.children !== null && child.children instanceof Array && child.children.length > 0) {
+          child.children = child.children.map(child => {
+            const newObj = this.copyNewParameter(child);
+            newObj.pid = param.id;
+            return newObj;
+          });
+          this.loopResponseParams(child, apiInfo);
+        }
+        if (child.groups !== undefined &&
+          child.groups.length > 0 &&
+          apiInfo.groups !== 'Void' &&
+          child.groups.includes("Hidden" + apiInfo.groups)) {
+
+          spliceIndex.push(i - spliceCount);
+          spliceCount++;
+        }
+      }
+      for (let i = 0; i < spliceIndex.length; i++) {
+        param.children.splice(spliceIndex[i], 1);
+      }
+    },
+
+    /**
+     * 递归构建对象结构
+     * @param {Array} parameterArray SwaggerBootstrapUiParameter 对象数组
+     * @returns {Object} 构建的对象结构
+     */
+    buildObjectFromParameters(parameterArray) {
+      if (!parameterArray || !Array.isArray(parameterArray)) {
+        return {};
+      }
+      const result = {};
+      parameterArray.forEach(param => {
+        if (param && param.name) {
+          // 处理子级参数
+          if (param.children && Array.isArray(param.children) && param.children.length > 0) {
+            // 如果有子级，递归构建
+            if (param.type === 'array') {
+              // 如果是数组类型，创建数组并递归构建子对象
+              result[param.name] = [this.buildObjectFromParameters(param.children)];
+            } else {
+              // 如果是对象类型，递归构建子对象
+              result[param.name] = this.buildObjectFromParameters(param.children);
+            }
+          } else {
+            // 没有子级，根据类型设置默认值
+            result[param.name] = this.getDefaultValue(param);
+          }
+        }
+      });
+
+      return result;
+    },
+    /**
+     * 根据参数类型获取默认值
+     * @param {SwaggerBootstrapUiParameter} param 参数对象
+     * @returns {*} 默认值
+     */
+    getDefaultValue(param) {
+      // 可以根据 childrenTypes 或其他属性来判断类型
+      switch (param.type) {
+        case 'string':
+          return '';
+        case 'number':
+        case 'integer':
+          return 0;
+        case 'boolean':
+          return false;
+        case 'array':
+          return [];
+        case 'object':
+          return {};
+        default:
+          return '';
+      }
+    },
   }
 };
 </script>

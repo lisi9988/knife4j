@@ -1721,6 +1721,7 @@ SwaggerBootstrapUi.prototype.analysisDefinitionAsyncOAS3 = function (menu, swud,
               var spropObj = new SwaggerBootstrapUiProperty();
               // jsr303
               that.validateJSR303(spropObj, propobj);
+              spropObj.groups = propobj.groups;
               // 赋值readOnly属性
               if (propobj.hasOwnProperty('readOnly')) {
                 spropObj.readOnly = propobj['readOnly'];
@@ -2146,6 +2147,7 @@ SwaggerBootstrapUi.prototype.analysisDefinitionRefTableModel = function (instanc
                       // refp.level = minfo.level + 1;
                       refp.name = pkey;
                       refp.type = p.type;
+                      refp.groups = p.groups;
                       // 判断format
                       var _format = KUtils.propValue('format', p, '');
                       if (KUtils.strNotBlank(_format)) {
@@ -2181,7 +2183,7 @@ SwaggerBootstrapUi.prototype.analysisDefinitionRefTableModel = function (instanc
                       if (p.hasOwnProperty('enum')) {
                         description = KUtils.enumAvalibleLabel(that.i18nInstance, p.enum, description);
                         // console.log("当前枚举description:", description);
-                      } 
+                      }
                       // 处理枚举列表类型的参数
                       else if (p.items && p.items.hasOwnProperty('enum')) {
                         description = KUtils.enumAvalibleLabel(that.i18nInstance, p.items.enum, description);
@@ -2459,6 +2461,7 @@ function deepSwaggerModelsTreeTableRefParameter(parentRefp, definitions, deepDef
               refp.level = parentRefp.level + 1;
               refp.name = pkey;
               refp.type = p.type;
+              refp.groups = p.groups;
               // 判断非array
               if (p.type != 'array') {
                 if (p.refType != null && p.refType != undefined && p.refType != '') {
@@ -4635,6 +4638,7 @@ SwaggerBootstrapUi.prototype.initApiInfoAsyncOAS3 = function (swpinfo) {
                 // $.each(props, function (i, p) {
                 var resParam = new SwaggerBootstrapUiParameter();
                 resParam.name = p.name;
+                resParam.groups = p.groups;
                 if (!KUtils.checkParamArrsExists(swaggerResp.responseParameters, resParam)) {
                   swaggerResp.responseParameters.push(resParam);
                   resParam.description = KUtils.replaceMultipLineStr(p.description);
@@ -4781,6 +4785,7 @@ SwaggerBootstrapUi.prototype.initApiInfoAsyncOAS3 = function (swpinfo) {
             // $.each(props, function (i, p) {
             var resParam = new SwaggerBootstrapUiParameter();
             resParam.name = p.name;
+            resParam.groups = p.groups;
             if (!KUtils.checkParamArrsExists(swpinfo.responseParameters, resParam)) {
               swpinfo.responseParameters.push(resParam);
               resParam.description = KUtils.replaceMultipLineStr(p.description);
@@ -5118,6 +5123,7 @@ SwaggerBootstrapUi.prototype.createApiInfoInstance = function (path, mtype, apiI
     apiInfo.operationId = apiInfo.operationId || swpinfo.id;
     swpinfo.operationId = apiInfo.operationId;
     swpinfo.summary = KUtils.toString(apiInfo.summary, '').replace(/\//g, '-');
+    swpinfo.groups = KUtils.toString(apiInfo.groups, '');
     // 针对summary做一次非空判断
     if (KUtils.strBlank(swpinfo.summary)) {
       swpinfo.summary = apiInfo.operationId;
@@ -5788,6 +5794,7 @@ SwaggerBootstrapUi.prototype.assembleParameterOAS3 = function (m, swpinfo, requi
     minfo.require = requireArray.includes(minfo.name);
   }
   minfo.description = KUtils.replaceMultipLineStr(KUtils.propValue('description', m, ''));
+  minfo.groups = KUtils.propValue('groups', m, null);
   // add at 2019-12-10 09:20:08  判断请求参数类型是否包含format
   // https://github.com/xiaoymin/swagger-bootstrap-ui/issues/161
   // 判断是否有枚举类型
@@ -6445,6 +6452,7 @@ function deepResponseRefParameter(swpinfo, that, def, resParam) {
             refp.name = p.name;
             refp.type = p.type;
             refp.description = KUtils.replaceMultipLineStr(p.description);
+            refp.groups = p.groups;
             // add之前需要判断是否已添加,递归情况有可能重复
             refParam.params.push(refp);
             // 判断类型是否基础类型
@@ -6494,6 +6502,7 @@ function deepTreeTableResponseRefParameter(swpinfo, that, def, resParam) {
             refp.name = p.name;
             refp.type = p.type;
             refp.description = KUtils.replaceMultipLineStr(p.description);
+            refp.groups = p.groups;
             refp.example = p.example;
             // add之前需要判断是否已添加,递归情况有可能重复
             refParam.params.push(refp);
@@ -6582,6 +6591,7 @@ function deepTreeTableRefParameter(minfo, that, def, apiInfo, oas2) {
               refp.require = p.required;
               refp.example = p.example;
               refp.description = KUtils.replaceMultipLineStr(p.description);
+              refp.groups = p.groups;
               // console.log('deep-----------propfmasdlkfsafdd')
               // console.log(p)
               that.validateJSR303(refp, p.originProperty);
@@ -6662,6 +6672,7 @@ function deepRefParameter(minfo, that, def, apiInfo) {
               refp.in = minfo.in;
               refp.require = p.required;
               refp.description = KUtils.replaceMultipLineStr(p.description);
+              refp.groups = p.groups;
               that.validateJSR303(refp, p.originProperty);
               refParam.params.push(refp);
               // 判断类型是否基础类型
@@ -7213,6 +7224,8 @@ var SwaggerBootstrapUiParameter = function () {
   this.childrenTypes = new Array();
   this.children = null;
   this.parentTypes = new Array();
+
+  this.groups = null;
 }
 
 function SwaggerBootstrapUiParameterLevel() {
