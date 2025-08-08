@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.lisi9988</groupId>
     <artifactId>knife4j</artifactId>
-    <version>4.6.0-SNAPSHOT-group</version>
+    <version>4.6.0-SNAPSHOT</version>
     <modules>
         <module>knife4j-core</module>
         <module>knife4j-dependencies</module>
@@ -49,8 +49,8 @@
         <knife4j-springdoc-openapi.version>1.8.0</knife4j-springdoc-openapi.version>
         <knife4j-swagger-models.version>1.6.6</knife4j-swagger-models.version>
 
-        <knife4j-springdoc-openapi-jakarta.version>2.8.10-SNAPSHOT-group</knife4j-springdoc-openapi-jakarta.version>
-        <knife4j-swagger-models-v3.version>2.2.35-SNAPSHOT-group</knife4j-swagger-models-v3.version>
+        <knife4j-springdoc-openapi-jakarta.version>2.8.10-SNAPSHOT</knife4j-springdoc-openapi-jakarta.version>
+        <knife4j-swagger-models-v3.version>2.2.35</knife4j-swagger-models-v3.version>
 
 
         <knife4j-servlet.version>3.1.0</knife4j-servlet.version>
@@ -112,17 +112,17 @@
             <dependency>
                 <groupId>io.github.lisi9988</groupId>
                 <artifactId>knife4j-core</artifactId>
-                <version>4.6.0-SNAPSHOT-group</version>
+                <version>4.6.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.github.lisi9988</groupId>
                 <artifactId>knife4j-openapi2-ui</artifactId>
-                <version>4.6.0-SNAPSHOT-group</version>
+                <version>4.6.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>io.github.lisi9988</groupId>
                 <artifactId>knife4j-openapi3-ui</artifactId>
-                <version>4.6.0-SNAPSHOT-group</version>
+                <version>4.6.0-SNAPSHOT</version>
             </dependency>
             <!-- https://mvnrepository.com/artifact/cn.hutool/hutool-all -->
             <dependency>
