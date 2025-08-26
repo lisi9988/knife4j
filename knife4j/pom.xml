@@ -50,21 +50,21 @@
         <knife4j-swagger-models.version>1.6.6</knife4j-swagger-models.version>
 
         <knife4j-springdoc-openapi-jakarta.version>2.8.10</knife4j-springdoc-openapi-jakarta.version>
-        <knife4j-swagger-models-v3.version>2.2.35</knife4j-swagger-models-v3.version>
+        <knife4j-swagger-models-v3.version>2.2.36</knife4j-swagger-models-v3.version>
 
 
         <knife4j-servlet.version>3.1.0</knife4j-servlet.version>
         <knife4j-servlet-jakarta.version>6.0.0</knife4j-servlet-jakarta.version>
 
-        <knife4j-slf4j.version>1.7.28</knife4j-slf4j.version>
-        <knife4j-hutool.version>5.8.15</knife4j-hutool.version>
+        <knife4j-slf4j.version>2.0.17</knife4j-slf4j.version>
+        <knife4j-hutool.version>5.8.39</knife4j-hutool.version>
         <knife4j-httpclient.version>4.5.14</knife4j-httpclient.version>
         <knife4j-gson.version>2.10.1</knife4j-gson.version>
 
 
 
         <knife4j-javassist.version>3.25.0-GA</knife4j-javassist.version>
-        <knife4j-lombok.version>1.18.24</knife4j-lombok.version>
+        <knife4j-lombok.version>1.18.38</knife4j-lombok.version>
 
         <knife4j-spotless-maven-plugin.version>2.22.1</knife4j-spotless-maven-plugin.version>
         <!-- 打包跳过单元测试1 -->
@@ -83,12 +83,12 @@
     </scm>
     <distributionManagement>
         <snapshotRepository>
-            <id>oss</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <id>central</id>
+            <url>https://central.sonatype.com/</url>
         </snapshotRepository>
         <repository>
-            <id>oss</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>central</id>
+            <url>https://central.sonatype.com/</url>
         </repository>
     </distributionManagement>
 
@@ -406,6 +406,17 @@
             <id>release</id>
             <build>
                 <plugins>
+                    <!--   central发布插件    -->
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.4.0</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <tokenAuth>true</tokenAuth>
+                        </configuration>
+                    </plugin>
                     <!-- Source -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
@@ -444,6 +455,7 @@
                         <version>1.6</version>
                         <executions>
                             <execution>
+                                <id>sign-artifacts</id>
                                 <phase>verify</phase>
                                 <goals>
                                     <goal>sign</goal>
@@ -455,12 +467,12 @@
             </build>
             <distributionManagement>
                 <snapshotRepository>
-                    <id>oss</id>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+                    <id>central</id>
+                    <url>https://central.sonatype.com/</url>
                 </snapshotRepository>
                 <repository>
-                    <id>oss</id>
-                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                    <id>central</id>
+                    <url>https://central.sonatype.com/</url>
                 </repository>
             </distributionManagement>
         </profile>
