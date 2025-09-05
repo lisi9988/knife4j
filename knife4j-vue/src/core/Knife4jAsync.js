@@ -2386,9 +2386,9 @@ SwaggerBootstrapUi.prototype.getSwaggerModelRefType = function (propobj, oas2) {
               refType = RegExp.$1;
             }
           }
-        } else {
-          refType = type;
         }
+      } else {
+        refType = type;
       }
     } else {
       if (type == 'array') {
@@ -5276,7 +5276,7 @@ SwaggerBootstrapUi.prototype.readOpenApiSpeci = function (path, swpinfo, apiInfo
       copyOpenApi['definitions'] = def;
     } else {
       def = this.readOpenApiSpeciOAS3(apiInfo, swaggerData);
-      copyOpenApi['components'] = def;
+      copyOpenApi['components'] = { schemas: def };
     }
     swpinfo.openApiRaw = copyOpenApi;
     // 查询definitions节点
