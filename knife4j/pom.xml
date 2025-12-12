@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.lisi9988</groupId>
     <artifactId>knife4j</artifactId>
-    <version>4.6.0.1-SNAPSHOT</version>
+    <version>4.6.0.2-SNAPSHOT</version>
     <modules>
         <module>knife4j-core</module>
         <module>knife4j-dependencies</module>
@@ -42,7 +42,7 @@
         <knife4j-spring.version>5.3.31</knife4j-spring.version>
         <knife4j-spring-boot.version>2.7.18</knife4j-spring-boot.version>
         <knife4j-spring3.version>6.2.0</knife4j-spring3.version>
-        <knife4j-spring-boot3.version>3.5.5</knife4j-spring-boot3.version>
+        <knife4j-spring-boot3.version>3.5.7</knife4j-spring-boot3.version>
         <knife4j-junit-jupiter-api.version>5.11.3</knife4j-junit-jupiter-api.version>
 
         <knife4j-springfox.version>2.10.5</knife4j-springfox.version>
@@ -59,13 +59,13 @@
         <knife4j-servlet-jakarta.version>6.1.0</knife4j-servlet-jakarta.version>
 
         <knife4j-slf4j.version>2.0.17</knife4j-slf4j.version>
-        <knife4j-hutool.version>5.8.39</knife4j-hutool.version>
+        <knife4j-hutool.version>5.8.42</knife4j-hutool.version>
         <knife4j-httpclient.version>4.5.14</knife4j-httpclient.version>
         <knife4j-gson.version>2.11.0</knife4j-gson.version>
 
 
         <knife4j-javassist.version>3.30.2-GA</knife4j-javassist.version>
-        <knife4j-lombok.version>1.18.38</knife4j-lombok.version>
+        <knife4j-lombok.version>1.18.42</knife4j-lombok.version>
 
 
         <knife4j-spotless-maven-plugin.version>2.43.0</knife4j-spotless-maven-plugin.version>
