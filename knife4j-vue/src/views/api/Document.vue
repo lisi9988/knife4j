@@ -491,19 +491,7 @@ export default {
                         const newObj = that.copyNewParameter(
                           swaggerBootstrapUiParameter
                         );
-                        // 记录忽略的属性
-                        if (newObj.groups !== undefined &&
-                          newObj.groups.length > 0 &&
-                          apiInfo.groups !== 'Void' &&
-                          newObj.groups.includes("Hidden" + apiInfo.groups)) {
-
-                          ignoreParam.push(newObj.name);
-                        }
                         newObj.pid = param.id;
-                        // 方法的groups 默认是Void, 属性是空数组
-                        if (newObj.groups !== undefined && newObj.groups !== null && newObj.groups.length > 0 && apiInfo.groups !== 'Void') {
-                          newObj.require = newObj.groups.includes(apiInfo.groups);
-                        }
                         if (newObj.children) {
                           // 递归过滤更深层次忽略的属性
                           const childrens = JSON.parse(
@@ -538,17 +526,8 @@ export default {
                 }
               }
             }
-            // 如果是json请求属性
-            let newJsonValue = Object.assign({}, param.value);
-            for (const ignoreParamElement of ignoreParam) {
-              Reflect.deleteProperty(newJsonValue, ignoreParamElement);
-              for (let i = 0; i < param.children.length; i++) {
-                let child = param.children[i];
-                if (ignoreParamElement === child.name) {
-                  param.children.splice(i, 1);
-                }
-              }
-            }
+            let newJsonValue = that.buildRequestBody(param, apiInfo, ignoreParam);
+            that.buildRequestParameter(param, ignoreParam);
             // json请求把示例参数格式化, formatData 或 pathValue 等参数不需要
             if (typeof apiInfo.requestValue === 'string') {
               apiInfo.requestValue = JSON.stringify(newJsonValue, null, 4);
@@ -1048,6 +1027,70 @@ export default {
           return '';
       }
     },
+    /**
+     * 构建请求参数
+     *
+     * @param parameter 请求参数
+     * @param ignoreParam 忽略的参数
+     * @author Warrior
+     */
+    buildRequestParameter(parameter, ignoreParam) {
+      // 如果不是对象类型，直接返回 value（或 example）
+      if (!parameter.children || parameter.children.length === 0) {
+        return;
+      }
+      for (let i = parameter.children.length - 1; i >= 0; i--) {
+        let child = parameter.children[i];
+        if (ignoreParam.includes(child.id)) {
+          parameter.children.splice(i, 1);
+        } else {
+          // 如果是嵌套对象, 继续处理
+          if (child.schema && child.schemaValue) {
+            this.buildRequestParameter(child, ignoreParam);
+          }
+        }
+      }
+    },
+    /**
+     * 构建请求body参数
+     *
+     * @param parameter 请求参数
+     * @param apiInfo 接口信息
+     * @param ignoreParam 忽略的参数
+     * @author Warrior
+     */
+    buildRequestBody(parameter, apiInfo, ignoreParam) {
+      // 如果不是对象类型，直接返回 value（或 example）
+      if (!parameter.children || parameter.children.length === 0) {
+        return parameter.value !== undefined ? parameter.value : "";
+      }
+      const result = {};
+      // 遍历所有子节点
+      parameter.children.forEach(child => {
+        // 检查是否应该显示此字段
+        const shouldInclude = !(child.groups !== undefined &&
+          child.groups.length > 0 &&
+          apiInfo.groups !== 'Void' &&
+          child.groups.includes("Hidden" + apiInfo.groups));
+        // 是否必须
+        if (child.groups !== undefined && child.groups !== null && child.groups.length > 0 && apiInfo.groups !== 'Void') {
+          child.require = child.groups.includes(apiInfo.groups);
+        }
+        if (shouldInclude) {
+          if (child.schema && child.schemaValue) {
+            // 是嵌套对象，递归处理
+            result[child.name] = this.buildRequestBody(child, apiInfo, ignoreParam);
+          } else {
+            // 基本类型，直接赋值
+            result[child.name] = child.value !== undefined ? child.value : "";
+          }
+        } else {
+          console.log("隐藏字段: " + child.name)
+          ignoreParam.push(child.id);
+        }
+      });
+      return result;
+    }
   }
 };
 </script>
