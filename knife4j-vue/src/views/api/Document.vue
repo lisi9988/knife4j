@@ -1078,11 +1078,15 @@ export default {
         }
         if (shouldInclude) {
           if (child.schema && child.schemaValue) {
-            // 是嵌套对象，递归处理
-            result[child.name] = this.buildRequestBody(child, apiInfo, ignoreParam);
+            if (child.type === 'array') {
+              result[child.name] = [this.buildRequestBody(child, apiInfo, ignoreParam)];
+            }else {
+              // 是嵌套对象，递归处理
+              result[child.name] = this.buildRequestBody(child, apiInfo, ignoreParam);
+            }
           } else {
             // 基本类型，直接赋值
-            result[child.name] = child.value !== undefined ? child.value : "";
+            result[child.name] = this.getDefaultValue(child);
           }
         } else {
           console.log("隐藏字段: " + child.name)
