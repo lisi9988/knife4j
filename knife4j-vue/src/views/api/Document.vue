@@ -1089,7 +1089,6 @@ export default {
             result[child.name] = this.getDefaultValue(child);
           }
         } else {
-          console.log("隐藏字段: " + child.name)
           ignoreParam.push(child.id);
         }
       });
